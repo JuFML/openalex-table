@@ -28,6 +28,16 @@ export interface RawPublication {
   authorships: Authorship[];
 }
 
+export interface MetaResponse {
+  count: number;
+  db_response_time_ms: number;
+  groups_count: null;
+  next_cursor: string;
+  page: null
+  per_page: number;
+}
+
 export interface ApiResponse {
   results: RawPublication[];
+  meta: MetaResponse;
 }
