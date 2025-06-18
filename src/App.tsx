@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { api } from "./services/api"
-import type { Publication, Authorship, ApiResponse, RawPublication } from "./types";
-import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from '@tanstack/react-table';
+import type { Publication, Authorship, ApiResponse, RawPublication, SortingState } from "./types";
+import { useReactTable, getCoreRowModel, flexRender, createColumnHelper, getSortedRowModel } from '@tanstack/react-table';
 import { useVirtualizer } from "@tanstack/react-virtual"
 
 
@@ -9,6 +9,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 function App() {
   const [publications, setPublications] = useState<Publication[]>([])
   const [cursor, setCursor] = useState("*")
+  const [sorting, setSorting] = useState<SortingState[]>([{ id: "cited_by_count", desc: true }])
 
   const getAuthorNames = (authorships: Authorship[] = []): string => {
     const names = authorships
@@ -25,7 +26,6 @@ function App() {
         params: {
           "per-page": 20,
           cursor: cursor,
-          sort: "cited_by_count:desc"
         }
       });
 
@@ -47,25 +47,35 @@ function App() {
     columnHelper.accessor("title", {
       header: "Título",
       cell: info => info.getValue(),
+      enableSorting: false,
     }),
     columnHelper.accessor("publication_year", {
       header: "Año",
       cell: info => info.getValue(),
+      enableSorting: false,
     }),
     columnHelper.accessor("cited_by_count", {
       header: "Citaciones",
       cell: info => info.getValue(),
+      enableSorting: true,
     }),
     columnHelper.accessor("author_name", {
       header: "Autores",
       cell: info => info.getValue(),
+      enableSorting: false,
     }),
   ];
 
   const table = useReactTable({
     data: publications,
     columns,
+    state: {
+      sorting,
+    },
+    enableSortingRemoval: false,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   })
 
   const appRef = useRef<HTMLDivElement>(null)
@@ -135,12 +145,19 @@ function App() {
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <th key={header.id} style={{
-                      textAlign: 'left',
-                      padding: '0.5rem',
-                      fontWeight: 600
-                    }}>
+                    <th key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{
+                        cursor: header.column.getCanSort() ? "pointer" : "default",
+                        textAlign: 'left',
+                        padding: '0.5rem',
+                        fontWeight: 600
+                      }}>
                       {flexRender(header.column.columnDef.header, header.getContext())}
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string]}
                     </th>
                   ))}
                 </tr>

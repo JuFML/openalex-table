@@ -41,3 +41,8 @@ export interface ApiResponse {
   results: RawPublication[];
   meta: MetaResponse;
 }
+
+export interface SortingState {
+  id: string;
+  desc: boolean;
+}
