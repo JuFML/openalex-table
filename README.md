@@ -7,7 +7,7 @@
 </h1>
 
 <h3 align="center">
-  <a href="https://cart-ju.netlify.app/" target="_blank">Access demo page</a>
+  <a href="https://academic-publications-table.netlify.app/" target="_blank">Access demo page</a>
 <h3 >
 
 # Index
