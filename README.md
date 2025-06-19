@@ -3,7 +3,7 @@
 </h1>
 
 <h1 align="center">
-  <img width="300" src="public/presentation.jpg" alt="Cart preview"/>
+  <img width="800" src="public/presentation.jpg" alt="Cart preview"/>
 </h1>
 
 <h3 align="center">
