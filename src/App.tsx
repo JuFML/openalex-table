@@ -3,7 +3,8 @@ import { api } from "./services/api"
 import type { Publication, Authorship, ApiResponse, RawPublication, SortingState } from "./types";
 import { useReactTable, getCoreRowModel, flexRender, createColumnHelper, getSortedRowModel } from '@tanstack/react-table';
 import { useVirtualizer } from "@tanstack/react-virtual"
-
+import { Table, TableBody, TableCell, TableHeadCell, TableRow, TableHeader } from "./components/ui/table";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io"
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
   const columns = [
     columnHelper.accessor("title", {
       header: "Título",
+      size: 500,
       cell: info => info.getValue(),
       enableSorting: false,
     }),
@@ -56,11 +58,13 @@ function App() {
     }),
     columnHelper.accessor("cited_by_count", {
       header: "Citaciones",
+      size: 160,
       cell: info => info.getValue(),
       enableSorting: true,
     }),
     columnHelper.accessor("author_name", {
       header: "Autores",
+      size: 250,
       cell: info => info.getValue(),
       enableSorting: false,
     }),
@@ -83,7 +87,7 @@ function App() {
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
     getScrollElement: () => appRef.current,
-    estimateSize: () => 100,
+    estimateSize: () => 90,
     overscan: 10,
   })
 
@@ -104,96 +108,64 @@ function App() {
   }, [virtualRows]);
 
   return (
-    <>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '1rem',
-        backgroundColor: '#f3f4f6'
-      }}>
-        <h1 style={{
-          fontSize: '2.5rem',
-          fontWeight: '700',
-          marginBottom: '1rem'
-        }}>Publicaciones Académicas</h1>
-
-        <div
-          ref={appRef}
-          style={{
-            width: '100%',
-            maxWidth: '56rem',
-            height: '500px',
-            overflow: 'auto',
-            border: '1px solid #d1d5db',
-            borderRadius: '0.375rem',
-            backgroundColor: '#fff',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)'
-          }}
-        >
-          <table style={{ width: '100%', tableLayout: 'fixed' }}>
-            <thead style={{
-              position: 'sticky',
-              top: 0,
-              backgroundColor: '#fff',
-              borderBottom: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-              zIndex: 10
-            }}>
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{
-                        cursor: header.column.getCanSort() ? "pointer" : "default",
-                        textAlign: 'left',
-                        padding: '0.5rem',
-                        fontWeight: 600
-                      }}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {{
-                        asc: " 🔼",
-                        desc: " 🔽",
-                      }[header.column.getIsSorted() as string]}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-
-            <tbody style={{ height: `${totalSize}px`, position: "relative" }}>
-              {virtualRows.map(virtualRow => {
-                const row = table.getRowModel().rows[virtualRow.index]
-                return (
-                  <tr
-                    key={row.id}
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+      <h1 className="text-4xl font-bold mb-7">Publicaciones Académicas</h1>
+      <div
+        ref={appRef}
+        className="w-full max-w-5xl h-[500px] overflow-auto border border-gray-300 rounded-md bg-white shadow-sm"
+      >
+        <Table style={{ tableLayout: "fixed" }}>
+          <TableHeader>
+            {table.getHeaderGroups().map(headerGroup => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <TableHeadCell
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
                     style={{
-                      position: "absolute",
-                      transform: `translateY(${virtualRow.start}px)`,
-                      width: "100%",
-                      display: 'flex'
+                      width: header.column.columnDef.size, display: 'flex', alignItems: 'center', gap: 2
                     }}
-                    className="border-b"
+                    className={header.column.getCanSort() ? "cursor-pointer" : ""}
                   >
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} style={{
-                        padding: "2px",
-                        flex: '1'
-                      }}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: <IoIosArrowDown />,
+                      desc: <IoIosArrowUp />,
+                    }[header.column.getIsSorted() as string]}
+                  </TableHeadCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+
+          <TableBody style={{ height: `${totalSize}px` }}>
+            {virtualRows.map(virtualRow => {
+              const row = table.getRowModel().rows[virtualRow.index];
+              return (
+                <TableRow
+                  key={row.id}
+                  style={{
+                    position: "absolute",
+                    transform: `translateY(${virtualRow.start}px)`,
+                    height: `80px`,
+                    width: "100%",
+                  }}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: cell.column.columnDef.size }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
-    </>
+    </div >
   )
 }
 
