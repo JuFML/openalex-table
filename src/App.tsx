@@ -1,74 +1,44 @@
 import { useEffect, useRef, useState } from "react"
-import { api } from "./services/api"
-import type { Publication, Authorship, ApiResponse, RawPublication, SortingState } from "./types";
+import type { Publication, SortingState } from "./types";
+import { usePublications } from "./hooks/usePublications";
+import { Table, TableBody, TableCell, TableHeadCell, TableRow, TableHeader } from "./components/ui/table";
+
 import { useReactTable, getCoreRowModel, flexRender, createColumnHelper, getSortedRowModel } from '@tanstack/react-table';
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { Table, TableBody, TableCell, TableHeadCell, TableRow, TableHeader } from "./components/ui/table";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io"
+
+const columnHelper = createColumnHelper<Publication>()
+
+const columns = [
+  columnHelper.accessor("title", {
+    header: "Título",
+    size: 500,
+    cell: info => info.getValue(),
+    enableSorting: false,
+  }),
+  columnHelper.accessor("publication_year", {
+    header: "Año",
+    cell: info => info.getValue(),
+    enableSorting: false,
+  }),
+  columnHelper.accessor("cited_by_count", {
+    header: "Citaciones",
+    size: 160,
+    cell: info => info.getValue(),
+    enableSorting: true,
+  }),
+  columnHelper.accessor("author_name", {
+    header: "Autores",
+    size: 250,
+    cell: info => info.getValue(),
+    enableSorting: false,
+  }),
+];
 
 
 function App() {
-  const [publications, setPublications] = useState<Publication[]>([])
-  const [cursor, setCursor] = useState("*")
   const [sorting, setSorting] = useState<SortingState[]>([{ id: "cited_by_count", desc: true }])
-
-  const getAuthorNames = (authorships: Authorship[] = []): string => {
-    const names = authorships
-      .slice(0, 2)
-      .map((item) => item?.author?.display_name)
-    return names.join(", ");
-  };
-
-  const columnHelper = createColumnHelper<Publication>()
-
-  const getPublications = async () => {
-    try {
-      const res = await api.get<ApiResponse>("", {
-        params: {
-          "per-page": 20,
-          cursor: cursor,
-        }
-      });
-
-      const publication: Publication[] = res.data.results.map((item: RawPublication) => ({
-        title: item.title,
-        publication_year: item.publication_year,
-        cited_by_count: item.cited_by_count,
-        author_name: getAuthorNames(item.authorships),
-      }));
-
-      setPublications((prev) => [...prev, ...publication]);
-      setCursor(res.data.meta.next_cursor)
-    } catch (error) {
-      console.error("Error fetching publications:", error);
-    }
-  };
-
-  const columns = [
-    columnHelper.accessor("title", {
-      header: "Título",
-      size: 500,
-      cell: info => info.getValue(),
-      enableSorting: false,
-    }),
-    columnHelper.accessor("publication_year", {
-      header: "Año",
-      cell: info => info.getValue(),
-      enableSorting: false,
-    }),
-    columnHelper.accessor("cited_by_count", {
-      header: "Citaciones",
-      size: 160,
-      cell: info => info.getValue(),
-      enableSorting: true,
-    }),
-    columnHelper.accessor("author_name", {
-      header: "Autores",
-      size: 250,
-      cell: info => info.getValue(),
-      enableSorting: false,
-    }),
-  ];
+  const { publications, getPublications } = usePublications()
 
   const table = useReactTable({
     data: publications,
